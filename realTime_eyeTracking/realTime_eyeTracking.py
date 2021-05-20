@@ -47,13 +47,24 @@ def contouring(thresh, mid, img, right=False):
         print("눈 감음")
         pass
 def eyes_tracking(right=False):
-    # print(coord)
     if right==False:
-        d=distance.euclidean(coord,shape[39]) 
-        print("왼쪽의 왼쪽",d-400)
-    else:
-        d=distance.euclidean(coord,shape[45])
-        print("오른쪽의 왼쪽",d-400) 
+    #     d=distance.euclidean(coord,shape[39]) 
+    #     print("왼쪽의 왼쪽",d-400)
+        l_top_y=(shape[37][1]+shape[38][1])/2
+        l_bottom_y=(shape[41][1]+shape[40][1])/2
+        l_right_x=(shape[38][0]+shape[40][0])/2  
+        #l_right_x=(shape[38][0])//2  
+        l_left_x=(shape[37][0]+shape[41][0])/2
+        #print((shape[38][0]+shape[41][0])/2)
+        #print(type(shape[38][0]))
+        # if coord[0]>l_rihgt_x:
+        #     print("왼쪽눈이 오른쪽을 보고 있습니다.")
+        # elif coord[0]<l_left_x:
+        #     print("왼쪽눈이 왼쪽을 보고 있습니다.")
+    #else:
+    #     d=distance.euclidean(coord,shape[45])
+    #     print("오른쪽의 왼쪽",d-400) 
+
 
 detector = dlib.get_frontal_face_detector()     # dlib에 내장된 얼굴 정면 탐지
 predictor = dlib.shape_predictor('shape_68.dat')    # 미리 학습된 얼굴의 68개 좌표
