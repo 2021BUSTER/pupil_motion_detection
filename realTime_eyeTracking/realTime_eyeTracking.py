@@ -1,6 +1,5 @@
 """
 Eye detection Using Dlib
-
 pre-train (68 key point)  - shape68.dat에 미리 pre train되어 있음
 dlib 라이브러리 - 실시간 prediction이 가능하게 함 
 face keypoint detector - dlib 모듈의 직사각형 객체를 단순히 얼굴의 좌표인 입력으로 사용
@@ -67,7 +66,8 @@ def eyes_tracking(right=False):
 
 
 detector = dlib.get_frontal_face_detector()     # dlib에 내장된 얼굴 정면 탐지
-predictor = dlib.shape_predictor('shape_68.dat')    # 미리 학습된 얼굴의 68개 좌표
+#predictor = dlib.shape_predictor('shape_68.dat')    # 미리 학습된 얼굴의 68개 좌표
+predictor = dlib.shape_predictor("/Users/JeongYerin/Desktop/Capstone Design/source_code/pupil_motion_detection/realTime_eyeTracking/shape_68.dat")    # 미리 학습된 얼굴의 68개 좌표
 left = [36, 37, 38, 39, 40, 41] # shape_68의 left 눈의 좌표
 right = [42, 43, 44, 45, 46, 47]    # shape_68의 right 눈의 좌표
 
