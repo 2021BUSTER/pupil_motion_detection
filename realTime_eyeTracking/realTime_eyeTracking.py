@@ -45,6 +45,8 @@ def contouring(thresh, mid, img, right=False):
     except:
         print("눈 감음")
         pass
+
+#얼굴의 점과의 거리를 이용한 시선 분석 예정
 def eyes_tracking(right=False):
     if right==False:
     #     d=distance.euclidean(coord,shape[39]) 
