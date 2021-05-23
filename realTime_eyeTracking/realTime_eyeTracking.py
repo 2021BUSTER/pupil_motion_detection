@@ -13,6 +13,14 @@ import numpy as np
 from scipy.spatial import distance
 
 coord=np.ndarray([])
+
+d_rr = 0
+d_rt = 0
+d_rb = 0
+d_ll = 0
+d_lt = 0
+d_lb = 0
+
 def shape_to_np(shape, dtype="int"):
 	# initialize the list of (x, y)-coordinates
 	coords = np.zeros((68, 2), dtype=dtype)
@@ -48,24 +56,19 @@ def contouring(thresh, mid, img, right=False):
 
 #얼굴의 점과의 거리를 이용한 시선 분석 예정
 def eyes_tracking(right=False):
-    if right==False:
-    #     d=distance.euclidean(coord,shape[39]) 
-    #     print("왼쪽의 왼쪽",d-400)
-        l_top_y=(shape[37][1]+shape[38][1])/2
-        l_bottom_y=(shape[41][1]+shape[40][1])/2
-        l_right_x=(shape[38][0]+shape[40][0])/2  
-        #l_right_x=(shape[38][0])//2  
-        l_left_x=(shape[37][0]+shape[41][0])/2
-        #print((shape[38][0]+shape[41][0])/2)
-        #print(type(shape[38][0]))
-        # if coord[0]>l_rihgt_x:
-        #     print("왼쪽눈이 오른쪽을 보고 있습니다.")
-        # elif coord[0]<l_left_x:
-        #     print("왼쪽눈이 왼쪽을 보고 있습니다.")
-    #else:
-    #     d=distance.euclidean(coord,shape[45])
-    #     print("오른쪽의 왼쪽",d-400) 
+    global d_rr, d_rt, d_rb
+    global d_ll ,d_lt, d_lb
 
+    if right==False:
+        d=distance.euclidean(coord,shape[0])
+        print(d)
+        if d > d_ll:
+            print("왼쪽")
+        elif d < d_ll:
+            print("오른쪽")
+
+
+ 
 
 detector = dlib.get_frontal_face_detector()     # dlib에 내장된 얼굴 정면 탐지
 #predictor = dlib.shape_predictor('shape_68.dat')    # 미리 학습된 얼굴의 68개 좌표
@@ -84,14 +87,20 @@ def nothing(x):
     pass
 cv2.createTrackbar('threshold', 'image', 0, 255, nothing)   # bar 생성
 
+flag_r = 0
+flag_l = 0
+
+
+
 while(True):
     ret, img = cap.read() # ret: 잘 읽어왔는지 true or false, img : 프레임값 읽어옴
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) # gray scale로 바꾸기
     rects = detector(gray, 1)   # 모든 face detector를 포함하고 있음 (사각형(얼굴을 인식)) -> white 영역이 눈의 영역
-  
+
     if  len(rects)==0:
         print(rects)
         print("없다")
+
     for rect in rects:
 
         shape = predictor(gray, rect)       
@@ -118,9 +127,22 @@ while(True):
         thresh = cv2.bitwise_not(thresh)                        # cv.findCounters()가 오브젝트로 눈알을 인식하기 위해 오브젝트는 white, 배경은 black으로 바꿔줘야 함
 
         contouring(thresh[:, 0:mid], mid, img)
+        if flag_l == 0 and coord.size == 2:
+            print('들어옴')
+            d_ll=distance.euclidean(coord,shape[0]) #distance left left
+            d_lt=distance.euclidean(coord,shape[19])
+            d_lb=distance.euclidean(coord,shape[6])
+            flag_l = 1
+
         eyes_tracking()
-        # print(type(coord))
+        
         contouring(thresh[:, mid:], mid, img, True)
+        if flag_r == 0 and coord.size == 2:
+            d_rr=distance.euclidean(coord,shape[16]) #distance right right
+            d_rt=distance.euclidean(coord,shape[24])
+            d_rb=distance.euclidean(coord,shape[10])
+            flag_r = 1
+        
         eyes_tracking(True)
         for (x, y) in shape[36:48]:
             cv2.circle(img, (x, y), 2, (255, 0, 0), -1)
