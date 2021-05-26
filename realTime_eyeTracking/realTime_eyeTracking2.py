@@ -12,8 +12,16 @@ import dlib
 import numpy as np
 from scipy.spatial import distance
 import time
+import threading
 
 coord=np.ndarray([])
+c_bad=0
+c_good=0
+cnt=0
+
+start=0
+bad_flag=0
+
 def shape_to_np(shape, dtype="int"):
 	# initialize the list of (x, y)-coordinates
 	coords = np.zeros((68, 2), dtype=dtype)
@@ -47,9 +55,11 @@ def contouring(thresh, mid, img, right=False):
     except:
         #print("눈 감음")
         pass
+
 def eyes_tracking(right=False):
     global coord
-    
+    global c_bad,c_good,bad_flag
+    global start
     if right==False and coord.size == 2:
         l_top_y=(shape[37][1]+shape[38][1])/2
         l_bottom_y=(shape[41][1]+shape[40][1])/2
@@ -59,26 +69,41 @@ def eyes_tracking(right=False):
         flag_eyes = 0
 
         if coord[0] > (l_left_x-2) :
-            print("l 범위 = ", l_left_x-2, " ", coord[0])
-            flag_eyes = 1
+            # print("l 범위 = ", l_left_x-2, " ", coord[0])
+            flag_eyes=1
         if coord[0] < (l_right_x + 2):
-            print("r 범위 = ", l_right_x+2, " ", coord[0])
-             #print("오른쪽")
-            flag_eyes = 1
+            #print("r 범위 = ", l_right_x+2, " ", coord[0])
+            #print("오른쪽")
+            flag_eyes=1
         if coord[1] < (l_top_y + 2) :
-                #print("위",coord[1], " ",l_top_y)
-            print("t 범위 = ",l_top_y + 2, " ", coord[1] )    
-            flag_eyes = 1
+            #print("위",coord[1], " ",l_top_y)
+            # print("t 범위 = ",l_top_y + 2, " ", coord[1] )  
+            flag_eyes=1  
         # if coord[1] > l_bottom_y-2:
         #     print("아래",coord[1]," ",l_bottom_y)
         #     flag_eyes=1
 
         if flag_eyes == 1 :
-            print("집중해!")
+            #print("집중해!")
             flag_eyes = 0
-        elif flag_eyes == 0:
-            print("잘했어 예지")
+            if bad_flag==0:
+                start=time.time()
+                bad_flag=1
+
+            else:
+                check_T=time.time()-start
+                if check_T>5:
+                    c_bad+=1
+                    bad_flag=0
+                    print("집중하자",check_T)
+                    check_T=0
+                    start=0
+                    bad_flag=0
             
+        elif flag_eyes == 0:
+            #print("잘했어 예지")
+            bad_flag=0
+           
         
         #if coord[1] > l_bottom_y:
         #    print("아래")
@@ -94,8 +119,8 @@ def eyes_tracking(right=False):
 
 
 detector = dlib.get_frontal_face_detector()     # dlib에 내장된 얼굴 정면 탐지
-#predictor = dlib.shape_predictor('shape_68.dat')    # 미리 학습된 얼굴의 68개 좌표
-predictor = dlib.shape_predictor("/Users/JeongYerin/Desktop/Capstone Design/source_code/pupil_motion_detection/realTime_eyeTracking/shape_68.dat")    # 미리 학습된 얼굴의 68개 좌표
+predictor = dlib.shape_predictor('shape_68.dat')    # 미리 학습된 얼굴의 68개 좌표
+#predictor = dlib.shape_predictor("/Users/JeongYerin/Desktop/Capstone Design/source_code/pupil_motion_detection/realTime_eyeTracking/shape_68.dat")    # 미리 학습된 얼굴의 68개 좌표
 left = [36, 37, 38, 39, 40, 41] # shape_68의 left 눈의 좌표
 right = [42, 43, 44, 45, 46, 47]    # shape_68의 right 눈의 좌표
 
@@ -110,16 +135,42 @@ def nothing(x):
     pass
 cv2.createTrackbar('threshold', 'image', 0, 255, nothing)   # bar 생성
 
+# count = 0
+# def startTimer():
+#     global count
+#     timer = threading.Timer(10, startTimer)     # 10초 마다 타이머 실행
+#     timer.start()
+#     print(count)
+#     count += 1
+#     if count > 5:
+#         count=0
+#         timer.cancel()
 while(True):
-    time.sleep(0.5)
+
+    #startTimer()
+    
     ret, img = cap.read() # ret: 잘 읽어왔는지 true or false, img : 프레임값 읽어옴
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) # gray scale로 바꾸기
     rects = detector(gray, 1)   # 모든 face detector를 포함하고 있음 (사각형(얼굴을 인식)) -> white 영역이 눈의 영역
   
     if  len(rects)==0:
-        print(rects)
-        print("없다")
+        if bad_flag==0:
+            start=0
+            start=time.time()
+            bad_flag=1
+
+        else:
+            check_T=time.time()-start
+            if check_T>5:
+                c_bad+=1
+                print("집중하자",check_T)
+                bad_flag=0
+                check_T=0
+                start=0
+                bad_flag=0
+    
     for rect in rects:
+        
 
         shape = predictor(gray, rect)       
         shape = shape_to_np(shape)
@@ -146,9 +197,17 @@ while(True):
 
         contouring(thresh[:, 0:mid], mid, img)
         eyes_tracking()
-        # print(type(coord))
         contouring(thresh[:, mid:], mid, img, True)
         eyes_tracking(True)
+        
+        # if cnt==10:
+        #     if (c_good + c_bad)/2 > 0:
+        #         print("집중하고 있네!!")
+        #     else:
+        #         print("집중하자!!") 
+        #     c_bad=0
+        #     c_good=0
+        #     cnt=0
         for (x, y) in shape[36:48]:
             cv2.circle(img, (x, y), 2, (255, 0, 0), -1)
     # show the image with the face detections + facial landmarks
