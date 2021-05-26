@@ -31,7 +31,7 @@ def Ardread_H(cnt): # return list [Ard1,Ard2]
             splitData[i] = int(splitData[i])
 
         splitData = np.reshape(splitData,(4,4))
-        
+        splitData = np.flip(splitData)
     else :
         print("읽기 실패 from _Ardread_") 
         
