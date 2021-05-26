@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-PORT = 'COM4' 
+PORT = 'COM7' 
 BaudRate = 9600 
 
 ARD = serial.Serial(PORT,BaudRate) 
@@ -25,10 +25,20 @@ def Ardread(cnt): # return list [Ard1,Ard2]
 
         for i in range(0,9) :
             splitData[i] = int(splitData[i])
+    
+        j = 0
+        data = list(range(0,16))
+        for i in range(0,16) :
+            if i % 4 == 3 or i > 11:
+                data[i] = 0
+            else :
+                data[i] = splitData[j]
+                j = j+1
 
-        splitData = np.reshape(splitData,(3,3))
+        data = np.reshape(data,(4,4))
+        print(type(data))
 
-        ax = sns.heatmap(splitData, cmap='Blues', cbar=False , vmin = 0, vmax = 1000)
+        ax = sns.heatmap(data, cmap='Blues', cbar=False , vmin = 0, vmax = 1000)
         ax.tick_params(left=False, bottom=False)
         ax.axes.xaxis.set_visible(False)
         ax.axes.yaxis.set_visible(False)
