@@ -9,6 +9,7 @@ int FSRsensor7 = A7;
 int FSRsensor8 = A8;
 
 int FSRsensor9 = A9;
+int FSRsensor9 = A11;
 int FSRsensor10 = A10;
 int FSRsensor12 = A12;
 int FSRsensor13 = A13;
@@ -51,8 +52,8 @@ void loop() {
   value8 = analogRead(FSRsensor8);
   
   value9 = analogRead(FSRsensor9);
-  value11 = analogRead(FSRsensor10);
   value10 = analogRead(FSRsensor10);
+  value11 = analogRead(FSRsensor11);
   value12 = analogRead(FSRsensor12);
   value13 = analogRead(FSRsensor13);
   value14 = analogRead(FSRsensor14);
@@ -80,6 +81,8 @@ void loop() {
   Serial.print(value9);
   Serial.print(",");
   Serial.print(value10);
+  Serial.print(",");
+  Serial.print(value11);
   Serial.print(",");
   Serial.print(value12);
   Serial.print(",");
