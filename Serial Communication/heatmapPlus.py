@@ -84,4 +84,5 @@ def merger_heatmap() :
 while (True): 
     Ardread_H(cnt)
     Ardread_B(cnt)
+    merger_heatmap()
     cnt += 1
