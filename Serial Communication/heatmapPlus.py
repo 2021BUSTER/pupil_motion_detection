@@ -12,10 +12,7 @@ BaudRate = 9600
 ARD_H = serial.Serial(PORT_H,BaudRate) 
 ARD_B = serial.Serial(PORT_B,BaudRate) 
 
-array=[]
-buf=[]
-
-cnt = 33
+cnt = 0
 
 data_9 = list(range(0,16))
 splitData = list(range(0,16))
@@ -35,7 +32,7 @@ def Ardread_H(cnt): # return list [Ard1,Ard2]
 
         splitData = np.reshape(splitData,(4,4))
         
-    else : 
+    else :
         print("읽기 실패 from _Ardread_") 
         
 #Arduino for back
@@ -70,19 +67,23 @@ def merger_heatmap() :
     global splitData
     global data_9
     
-    np.concatenate((splitData, data_9), axis=0)
+    heatmapArr = np.concatenate((data_9, splitData), axis=0)
+    print(heatmapArr)
 
-    ax = sns.heatmap(data_9, cmap='Greys', cbar=False , vmin = 0, vmax = 1024)
+    ax = sns.heatmap(heatmapArr, cmap='Greys', cbar=False , vmin = 0, vmax = 1024)
     ax.tick_params(left=False, bottom=False)
     ax.axes.xaxis.set_visible(False)
     ax.axes.yaxis.set_visible(False)
      
-    fname = 'backright' + str(cnt) +'.png'
-    plt.savefig("/home/pi/shareSamba/backright/"+fname, dpi=200)
+    fname = 'correct' + str(cnt) +'.png'
+    plt.savefig("/home/pi/shareSamba/correctPosition/"+fname, dpi=200)
         
+    data_9 = np.reshape(data_9,(16,1))
+    splitData = np.reshape(splitData,(16,1))
     
 while (True): 
     Ardread_H(cnt)
     Ardread_B(cnt)
     merger_heatmap()
     cnt += 1
+
