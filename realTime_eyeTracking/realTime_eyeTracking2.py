@@ -68,7 +68,7 @@ def eyes_tracking(right=False):
         
         flag_eyes = 0
 
-        if coord[0] > (l_left_x-2) :
+        if coord[0] > (l_left_x - 2) :
             # print("l 범위 = ", l_left_x-2, " ", coord[0])
             flag_eyes=1
         if coord[0] < (l_right_x + 2):
