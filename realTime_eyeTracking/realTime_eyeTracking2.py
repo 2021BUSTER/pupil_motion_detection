@@ -15,8 +15,6 @@ import time
 import threading
 
 coord=np.ndarray([])
-c_bad=0
-c_good=0
 cnt=0
 
 start=0
@@ -40,6 +38,8 @@ def eye_on_mask(mask, side):
 
 def contouring(thresh, mid, img, right=False):
     global coord
+    global bad_flag,start
+
     cnts, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE) 
     try:
         cnt = max(cnts, key = cv2.contourArea)
@@ -53,12 +53,24 @@ def contouring(thresh, mid, img, right=False):
         coord=np.array([cx,cy])
         
     except:
-        #print("눈 감음")
+
+        if bad_flag==0:
+            start=0
+            start=time.time()
+            bad_flag=1
+        else:
+            check_T=time.time()-start
+            if check_T>5:
+                print("집중하자",check_T)
+                bad_flag=0
+                check_T=0
+                start=0
+                bad_flag=0
         pass
 
 def eyes_tracking(right=False):
     global coord
-    global c_bad,c_good,bad_flag
+    global bad_flag
     global start
     if right==False and coord.size == 2:
         l_top_y=(shape[37][1]+shape[38][1])/2
@@ -93,7 +105,6 @@ def eyes_tracking(right=False):
             else:
                 check_T=time.time()-start
                 if check_T>5:
-                    c_bad+=1
                     bad_flag=0
                     print("집중하자",check_T)
                     check_T=0
@@ -158,11 +169,9 @@ while(True):
             start=0
             start=time.time()
             bad_flag=1
-
         else:
             check_T=time.time()-start
             if check_T>5:
-                c_bad+=1
                 print("집중하자",check_T)
                 bad_flag=0
                 check_T=0
