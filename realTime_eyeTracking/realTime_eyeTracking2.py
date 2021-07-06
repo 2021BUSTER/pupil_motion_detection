@@ -16,8 +16,9 @@ import threading
 
 coord=np.ndarray([])
 cnt=0
-
+_CNT=0
 start=0
+_START=0
 bad_flag=0
 
 def shape_to_np(shape, dtype="int"):
@@ -39,6 +40,7 @@ def eye_on_mask(mask, side):
 def contouring(thresh, mid, img, right=False):
     global coord
     global bad_flag,start
+    global _CNT,START
 
     cnts, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE) 
     try:
@@ -62,6 +64,7 @@ def contouring(thresh, mid, img, right=False):
             check_T=time.time()-start
             if check_T>5:
                 print("집중하자",check_T)
+                _CNT+=1
                 bad_flag=0
                 check_T=0
                 start=0
@@ -72,6 +75,8 @@ def eyes_tracking(right=False):
     global coord
     global bad_flag
     global start
+    global _CNT,START
+
     if right==False and coord.size == 2:
         l_top_y=(shape[37][1]+shape[38][1])/2
         l_bottom_y=(shape[41][1]+shape[40][1])/2
@@ -80,23 +85,15 @@ def eyes_tracking(right=False):
         
         flag_eyes = 0
 
-        if coord[0] > (l_left_x - 2) :
-            # print("l 범위 = ", l_left_x-2, " ", coord[0])
+        if coord[0] > (l_left_x-2) :
             flag_eyes=1
         if coord[0] < (l_right_x + 2):
-            #print("r 범위 = ", l_right_x+2, " ", coord[0])
-            #print("오른쪽")
             flag_eyes=1
         if coord[1] < (l_top_y + 2) :
-            #print("위",coord[1], " ",l_top_y)
-            # print("t 범위 = ",l_top_y + 2, " ", coord[1] )  
             flag_eyes=1  
-        # if coord[1] > l_bottom_y-2:
-        #     print("아래",coord[1]," ",l_bottom_y)
-        #     flag_eyes=1
+
 
         if flag_eyes == 1 :
-            #print("집중해!")
             flag_eyes = 0
             if bad_flag==0:
                 start=time.time()
@@ -107,26 +104,15 @@ def eyes_tracking(right=False):
                 if check_T>5:
                     bad_flag=0
                     print("집중하자",check_T)
+                    _CNT+=1
                     check_T=0
                     start=0
                     bad_flag=0
             
         elif flag_eyes == 0:
-            #print("잘했어 예지")
             bad_flag=0
            
-        
-        #if coord[1] > l_bottom_y:
-        #    print("아래")
-        #elif coord[1] > l_top_y and coord[0] > l_left_x and coord[0] < l_right_x:
-        #    print("정면")
-        #else:
-        #    print("딴짓 baaaam")
 
-        # if coord[0]>l_left_x and coord[0]<l_right_x: #and coord[1]>l_bottom_y and coord[1]<l_top_y:
-        #     print("정면")
-        # else:
-        #     print("no 정면")
 
 
 detector = dlib.get_frontal_face_detector()     # dlib에 내장된 얼굴 정면 탐지
@@ -146,20 +132,17 @@ def nothing(x):
     pass
 cv2.createTrackbar('threshold', 'image', 0, 255, nothing)   # bar 생성
 
-# count = 0
-# def startTimer():
-#     global count
-#     timer = threading.Timer(10, startTimer)     # 10초 마다 타이머 실행
-#     timer.start()
-#     print(count)
-#     count += 1
-#     if count > 5:
-#         count=0
-#         timer.cancel()
-while(True):
+_START=time.time()
 
-    #startTimer()
-    
+while(True):
+    #timer start
+    if time.time()-_START>=60:
+        print(time.time()-_START,(round(float(5*_CNT)/60)*100))
+        print(_CNT)
+        #cnt 횟수 디비 저장 저장
+        _CNT=0
+        _START=time.time()
+
     ret, img = cap.read() # ret: 잘 읽어왔는지 true or false, img : 프레임값 읽어옴
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) # gray scale로 바꾸기
     rects = detector(gray, 1)   # 모든 face detector를 포함하고 있음 (사각형(얼굴을 인식)) -> white 영역이 눈의 영역
@@ -173,6 +156,7 @@ while(True):
             check_T=time.time()-start
             if check_T>5:
                 print("집중하자",check_T)
+                _CNT+=1
                 bad_flag=0
                 check_T=0
                 start=0
@@ -198,6 +182,7 @@ while(True):
 
         threshold = cv2.getTrackbarPos('threshold', 'image')    # threshold는 binary mask를 만들어줌 (0,1) , 눈알부분의 최적의 threshold값을 찾는게 목표
                                                                 # threshold값이 lighting condition에 따라 달라서 bar로 threshold값을 조절해야 함
+        #threshold = 61
         _, thresh = cv2.threshold(eyes_gray, threshold, 255, cv2.THRESH_BINARY)
         thresh = cv2.erode(thresh, None, iterations=2) #1       # 이미지 침식 , iterations = 반복횟수
         thresh = cv2.dilate(thresh, None, iterations=4) #2      # 이미지 팽창
@@ -209,14 +194,6 @@ while(True):
         contouring(thresh[:, mid:], mid, img, True)
         eyes_tracking(True)
         
-        # if cnt==10:
-        #     if (c_good + c_bad)/2 > 0:
-        #         print("집중하고 있네!!")
-        #     else:
-        #         print("집중하자!!") 
-        #     c_bad=0
-        #     c_good=0
-        #     cnt=0
         for (x, y) in shape[36:48]:
             cv2.circle(img, (x, y), 2, (255, 0, 0), -1)
     # show the image with the face detections + facial landmarks
