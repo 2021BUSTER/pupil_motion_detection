@@ -11,6 +11,7 @@ import cv2
 import dlib
 import numpy as np
 from scipy.spatial import distance
+from time import time
 import time
 import threading
 ########################DB관련################
@@ -148,14 +149,12 @@ while(True):
         print(time.time()-_START,focusper)
         print(_CNT)
         #cnt 횟수 디비 저장 저장
-        conn = sqlite3.connect('DB2.db')
+        now = datetime.datetime.now()
+        conn = sqlite3.connect("C:\\Users\\buster\\Anaconda3\\envs\\buster\\flask-live-charts\\DB2.db")
         cur = conn.cursor() # 커서 열기
-        cur.execute("INSERT INTO concentration (value,datetime) VALUES(?,?)",(focusper,datetime.datetime.now()))
-        """
-        m = cur.execute("SELECT * FROM concentration")
-        for i in m:
-        print(i[0],i[1])
-        """
+        cur.execute("INSERT INTO concentration (value,datetime) VALUES(?,?)",(focusper,time.time()*1000))
+        print(now.strftime('%H%M%S'),float(now.strftime('%H%M%S')))
+       
         conn.commit()
         conn.close()
         
