@@ -145,12 +145,12 @@ focusper = 0
 while(True):
     #timer start
     if time.time()-_START>=60:
-        focusper = round((float(5*_CNT)/60)*100)
+        focusper = 100-(round((float(5*_CNT)/60)*100))
         print(time.time()-_START,focusper)
         print(_CNT)
         #cnt 횟수 디비 저장 저장
         now = datetime.datetime.now()
-        conn = sqlite3.connect("C:\\Users\\buster\\Anaconda3\\envs\\buster\\flask-live-charts\\DB2.db")
+        conn = sqlite3.connect("C:\\Users\\ESE\\anaconda3\\envs\\buster\\flask-live-charts\\DB2.db")
         cur = conn.cursor() # 커서 열기
         cur.execute("INSERT INTO concentration (value,datetime) VALUES(?,?)",(focusper,time.time()*1000))
         print(now.strftime('%H%M%S'),float(now.strftime('%H%M%S')))
